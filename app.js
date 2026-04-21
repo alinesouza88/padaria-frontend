@@ -9,47 +9,65 @@ const descriptionInput = document.getElementById('description');
 
 // carregar produtos
 async function loadProducts() {
-  const res = await fetch(API);
-  const products = await res.json();
+  try {
+    const res = await fetch(API);
 
-  list.innerHTML = '';
+    if (!res.ok) throw new Error("Erro na API");
 
-  products.forEach(p => {
-    const li = document.createElement('li');
+    const products = await res.json();
 
-    li.innerHTML = `
-      ${p.name || 'Sem nome'} - R$ ${p.price}
-      <button onclick="deleteProduct('${p._id}')">Excluir</button>
-    `;
+    list.innerHTML = '';
 
-    list.appendChild(li);
-  });
+    products.forEach(p => {
+      const li = document.createElement('li');
+
+      li.innerHTML = `
+        ${p.name || 'Sem nome'} - R$ ${p.price}
+        <button onclick="deleteProduct('${p._id}')">Excluir</button>
+      `;
+
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.log("Erro ao carregar:", err);
+    list.innerHTML = "<li>⚠️ Erro ao carregar produtos</li>";
+  }
 }
 
 // adicionar produto
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const product = {
-    name: nameInput.value,
-    price: Number(priceInput.value),
-    description: descriptionInput.value
-  };
+  try {
+    const product = {
+      name: nameInput.value,
+      price: Number(priceInput.value),
+      description: descriptionInput.value
+    };
 
-  await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(product)
-  });
+    await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product)
+    });
 
-  form.reset();
-  loadProducts();
+    form.reset();
+    loadProducts();
+
+  } catch (err) {
+    console.log("Erro ao adicionar:", err);
+  }
 });
 
 // deletar produto
 async function deleteProduct(id) {
-  await fetch(`${API}/${id}`, { method: 'DELETE' });
-  loadProducts();
+  try {
+    await fetch(`${API}/${id}`, { method: 'DELETE' });
+    loadProducts();
+  } catch (err) {
+    console.log("Erro ao deletar:", err);
+  }
 }
 
 loadProducts();
